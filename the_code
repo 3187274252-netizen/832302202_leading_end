@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系人管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--gray-color);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-color);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: var(--dark-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #3a86ff;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b5179e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            font-weight: 600;
+        }
+
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-address-book"></i> 联系人管理系统</h1>
+            <p>轻松管理您的所有联系人信息</p>
+        </div>
+        
+        <!-- 添加/编辑联系人表单 -->
+        <div class="card">
+            <h3 class="card-title" id="formTitle"><i class="fas fa-user-plus"></i> 添加联系人</h3>
+            <input type="hidden" id="contactId">
+            <div class="form-group">
+                <label for="name">姓名:</label>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="name" placeholder="请输入联系人姓名" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="phone">电话:</label>
+                <div class="input-group">
+                    <i class="fas fa-phone"></i>
+                    <input type="text" id="phone" placeholder="请输入联系人电话" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">邮箱:</label>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="请输入联系人邮箱">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="saveContact()"><i class="fas fa-save"></i> 保存</button>
+                <button class="btn-secondary" onclick="resetForm()"><i class="fas fa-redo"></i> 重置</button>
+            </div>
+        </div>
+
+        <!-- 联系人列表 -->
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-list"></i> 联系人列表</h3>
+            <table id="contactsTable">
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>电话</th>
+                        <th>邮箱</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="contactsList">
+                    <!-- 示例数据 -->
+                    <tr>
+                        <td>张三</td>
+                        <td>13800138000</td>
+                        <td>zhangsan@example.com</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="btn-danger action-btn" onclick="deleteContact(this)"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>李四</td>
+                        <td>13900139000</td>
+                        <td>lisi@example.com</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
+                                <button class="btn-danger action-btn" onclick="deleteContact(this)"><i class="fas fa-trash"></i> 删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 示例联系人数据
+        let contacts = [
+            { id: 1, name: "张三", phone: "13800138000", email: "zhangsan@example.com" },
+            { id: 2, name: "李四", phone: "13900139000", email: "lisi@example.com" }
+        ];
+
+        // 当前编辑的联系人ID
+        let editingId = null;
+
+        // 保存联系人
+        function saveContact() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const id = document.getElementById('contactId').value;
+
+            if (!name || !phone) {
+                alert('姓名和电话是必填项！');
+                return;
+            }
+
+            if (id) {
+                // 编辑现有联系人
+                const index = contacts.findIndex(contact => contact.id == id);
+                if (index !== -1) {
+                    contacts[index] = { id: parseInt(id), name, phone, email };
+                }
+            } else {
+                // 添加新联系人
+                const newId = contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1;
+                contacts.push({ id: newId, name, phone, email });
+            }
+
+            // 更新表格
+            updateContactsTable();
+            
+            // 重置表单
+            resetForm();
+            
+            // 显示成功消息
+            alert(`联系人${id ? '更新' : '添加'}成功！`);
+        }
+
+        // 编辑联系人
+        function editContact(button) {
+            const row = button.closest('tr');
+            const name = row.cells[0].textContent;
+            const phone = row.cells[1].textContent;
+            const email = row.cells[2].textContent;
+            
+            // 查找联系人ID
+            const contact = contacts.find(c => c.name === name && c.phone === phone);
+            
+            if (contact) {
+                document.getElementById('contactId').value = contact.id;
+                document.getElementById('name').value = contact.name;
+                document.getElementById('phone').value = contact.phone;
+                document.getElementById('email').value = contact.email;
+                document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-edit"></i> 编辑联系人';
+                
+                // 滚动到表单
+                document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // 删除联系人
+        function deleteContact(button) {
+            if (confirm('确定要删除这个联系人吗？')) {
+                const row = button.closest('tr');
+                const name = row.cells[0].textContent;
+                const phone = row.cells[1].textContent;
+                
+                // 从数组中删除
+                contacts = contacts.filter(c => !(c.name === name && c.phone === phone));
+                
+                // 更新表格
+                updateContactsTable();
+                
+                alert('联系人已删除！');
+            }
+        }
+
+        // 更新联系人表格
+        function updateContactsTable() {
+            const tbody = document.getElementById('contactsList');
+            tbody.innerHTML = '';
+            
+            if (contacts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <p>暂无联系人，请添加新的联系人</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            contacts.forEach(contact => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${contact.name}</td>
+                    <td>${contact.phone}</td>
+                    <td>${contact.email}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
+                            <button class="btn-danger action-btn" onclick="deleteContact(this)"><i class="fas fa-trash"></i> 删除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('contactId').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus"></i> 添加联系人';
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            updateContactsTable();
+        });
+    </script>
+</body>
+</html>
