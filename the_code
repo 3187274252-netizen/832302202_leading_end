@@ -231,6 +231,46 @@
             font-size: 1.1rem;
         }
 
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: var(--transition);
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            padding-left: 15px;
+        }
+
+        .search-input i {
+            left: 15px;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -291,6 +331,15 @@
         <!-- 联系人列表 -->
         <div class="card">
             <h3 class="card-title"><i class="fas fa-list"></i> 联系人列表</h3>
+            
+            <!-- 搜索功能 -->
+            <div class="search-container">
+                <div class="input-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="搜索联系人..." onkeyup="searchContacts()">
+                </div>
+            </div>
+            
             <table id="contactsTable">
                 <thead>
                     <tr>
@@ -301,53 +350,83 @@
                     </tr>
                 </thead>
                 <tbody id="contactsList">
-                    <!-- 示例数据 -->
-                    <tr>
-                        <td>张三</td>
-                        <td>13800138000</td>
-                        <td>zhangsan@example.com</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
-                                <button class="btn-danger action-btn" onclick="deleteContact(this)"><i class="fas fa-trash"></i> 删除</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>李四</td>
-                        <td>13900139000</td>
-                        <td>lisi@example.com</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
-                                <button class="btn-danger action-btn" onclick="deleteContact(this)"><i class="fas fa-trash"></i> 删除</button>
-                            </div>
-                        </td>
-                    </tr>
+                    <!-- 联系人将通过JavaScript动态加载 -->
                 </tbody>
             </table>
         </div>
     </div>
 
-    <script>
-        // 示例联系人数据
-        let contacts = [
-            { id: 1, name: "张三", phone: "13800138000", email: "zhangsan@example.com" },
-            { id: 2, name: "李四", phone: "13900139000", email: "lisi@example.com" }
-        ];
+    <!-- 通知消息 -->
+    <div id="notification" class="notification"></div>
 
+    <script>
+        // 联系人数据 - 使用localStorage持久化存储
+        let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+        
         // 当前编辑的联系人ID
         let editingId = null;
-
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            updateContactsTable();
+            
+            // 检查是否有示例数据，如果没有则添加
+            if (contacts.length === 0) {
+                addSampleData();
+            }
+        });
+        
+        // 添加示例数据
+        function addSampleData() {
+            const sampleContacts = [
+                { id: 1, name: "张三", phone: "13800138000", email: "zhangsan@example.com" },
+                { id: 2, name: "李四", phone: "13900139000", email: "lisi@example.com" },
+                { id: 3, name: "王五", phone: "13700137000", email: "wangwu@example.com" }
+            ];
+            
+            contacts = [...sampleContacts];
+            saveToLocalStorage();
+            updateContactsTable();
+        }
+        
+        // 保存到localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('contacts', JSON.stringify(contacts));
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
         // 保存联系人
         function saveContact() {
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
             const id = document.getElementById('contactId').value;
 
             if (!name || !phone) {
-                alert('姓名和电话是必填项！');
+                showNotification('姓名和电话是必填项！', 'error');
+                return;
+            }
+
+            // 验证电话号码格式
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showNotification('请输入有效的手机号码！', 'error');
+                return;
+            }
+
+            // 验证邮箱格式（如果提供了邮箱）
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showNotification('请输入有效的邮箱地址！', 'error');
                 return;
             }
 
@@ -356,32 +435,39 @@
                 const index = contacts.findIndex(contact => contact.id == id);
                 if (index !== -1) {
                     contacts[index] = { id: parseInt(id), name, phone, email };
+                    showNotification('联系人更新成功！');
                 }
             } else {
+                // 检查是否已存在相同电话的联系人
+                const existingContact = contacts.find(contact => contact.phone === phone);
+                if (existingContact) {
+                    showNotification('该电话号码已存在！', 'error');
+                    return;
+                }
+                
                 // 添加新联系人
                 const newId = contacts.length > 0 ? Math.max(...contacts.map(c => c.id)) + 1 : 1;
                 contacts.push({ id: newId, name, phone, email });
+                showNotification('联系人添加成功！');
             }
 
+            // 保存到localStorage
+            saveToLocalStorage();
+            
             // 更新表格
             updateContactsTable();
             
             // 重置表单
             resetForm();
-            
-            // 显示成功消息
-            alert(`联系人${id ? '更新' : '添加'}成功！`);
         }
 
         // 编辑联系人
         function editContact(button) {
             const row = button.closest('tr');
-            const name = row.cells[0].textContent;
-            const phone = row.cells[1].textContent;
-            const email = row.cells[2].textContent;
+            const id = parseInt(row.getAttribute('data-id'));
             
-            // 查找联系人ID
-            const contact = contacts.find(c => c.name === name && c.phone === phone);
+            // 查找联系人
+            const contact = contacts.find(c => c.id === id);
             
             if (contact) {
                 document.getElementById('contactId').value = contact.id;
@@ -399,25 +485,44 @@
         function deleteContact(button) {
             if (confirm('确定要删除这个联系人吗？')) {
                 const row = button.closest('tr');
-                const name = row.cells[0].textContent;
-                const phone = row.cells[1].textContent;
+                const id = parseInt(row.getAttribute('data-id'));
                 
                 // 从数组中删除
-                contacts = contacts.filter(c => !(c.name === name && c.phone === phone));
+                contacts = contacts.filter(c => c.id !== id);
+                
+                // 保存到localStorage
+                saveToLocalStorage();
                 
                 // 更新表格
                 updateContactsTable();
                 
-                alert('联系人已删除！');
+                showNotification('联系人已删除！');
             }
+        }
+
+        // 搜索联系人
+        function searchContacts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredContacts = contacts.filter(contact => 
+                contact.name.toLowerCase().includes(searchTerm) || 
+                contact.phone.includes(searchTerm) || 
+                contact.email.toLowerCase().includes(searchTerm)
+            );
+            
+            renderContactsTable(filteredContacts);
         }
 
         // 更新联系人表格
         function updateContactsTable() {
+            renderContactsTable(contacts);
+        }
+        
+        // 渲染联系人表格
+        function renderContactsTable(contactsToRender) {
             const tbody = document.getElementById('contactsList');
             tbody.innerHTML = '';
             
-            if (contacts.length === 0) {
+            if (contactsToRender.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="4" class="empty-state">
@@ -429,12 +534,13 @@
                 return;
             }
             
-            contacts.forEach(contact => {
+            contactsToRender.forEach(contact => {
                 const row = document.createElement('tr');
+                row.setAttribute('data-id', contact.id);
                 row.innerHTML = `
                     <td>${contact.name}</td>
                     <td>${contact.phone}</td>
-                    <td>${contact.email}</td>
+                    <td>${contact.email || '-'}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn-success action-btn" onclick="editContact(this)"><i class="fas fa-edit"></i> 编辑</button>
@@ -454,11 +560,6 @@
             document.getElementById('email').value = '';
             document.getElementById('formTitle').innerHTML = '<i class="fas fa-user-plus"></i> 添加联系人';
         }
-
-        // 初始化页面
-        document.addEventListener('DOMContentLoaded', function() {
-            updateContactsTable();
-        });
     </script>
 </body>
 </html>
